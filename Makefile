@@ -11,8 +11,9 @@ LDFLAGS		+= -shared -lpam -lcurl
 arch		:= $(shell uname -m)
 
 obj			:= pam_url.so
-objc		:= ${obj:%.so=%.c}
-objo		:= ${obj:%.so=%.o}
+objc		:= pam_url.c 
+objc		+= pam_url_authenticate.c pam_url_account.c pam_url_session.c pam_url_password.c
+objo		:= ${objc:%.c=%.o}
 
 ifeq (${arch},x86_64)
 pamlib := lib64/security
@@ -31,6 +32,7 @@ ${obj}: ${objo}
 	${CC} ${LDFLAGS} -o ${obj} ${objo}
 
 clean:
+	${MAKE} -C tests clean
 	rm -f ${obj} ${objo}
 
 install:
@@ -38,4 +40,7 @@ install:
 
 uninstall:
 	rm -f ${DESTDIR}/${pamlib}/${obj}
+
+test:
+	${MAKE} -C tests all
 
