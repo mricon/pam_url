@@ -1,3 +1,5 @@
+# pam_url - GPLv2, Sascha Thomas Spreitzer, https://fedorahosted.org/pam_url
+
 CFLAGS		+= -fPIC -Wall
  
 ifdef DEBUG
@@ -11,8 +13,7 @@ LDFLAGS		+= -shared -lpam -lcurl
 arch		:= $(shell uname -m)
 
 obj			:= pam_url.so
-objc		:= pam_url.c 
-objc		+= pam_url_authenticate.c pam_url_account.c pam_url_session.c pam_url_password.c
+objc		:= ${shell ls pam_url*.c}
 objo		:= ${objc:%.c=%.o}
 
 ifeq (${arch},x86_64)

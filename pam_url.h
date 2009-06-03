@@ -1,3 +1,5 @@
+// pam_url - GPLv2, Sascha Thomas Spreitzer, https://fedorahosted.org/pam_url
+
 #ifndef PAM_URL_H_
 #define PAM_URL_H_
 

@@ -1,31 +1,4 @@
-/*
- * pam_url - authenticate against webservers
- *
- * This software is opensource software licensed under the GNU Public License version 2.
- * The author of this software is Sascha Thomas Spreitzer <sspreitzer (at) fedoraproject.org>.
- * Please take a look in the COPYING, INSTALL and README files.
- *
- * USE THIS SOFTWARE WITH ABSOLUTELY NO GUARANTEE AND WARRANTY
- *
- *
- * /etc/pam.d/sshd or /etc/pam.d/system-auth:
- *
- * [...]
- * auth sufficient pam_url.so https://www.example.org/ secret user passwd &do=login
- * auth sufficient pam_url.so URL                      PSK    USER PASSWD EXTRA
- * [...]
- * This module takes 4 arguments:
- * - URL = HTTPS URL
- * - PSK = Pre Shared Key
- * - USER = The name of the user variable
- * - PASSWD = The name of the password variable
- * - EXTRA = additional url encoded data
- *
- * auth sufficient pam_url.so https://www.example.org/ secret user passwd &do=auth
- * This line forms the following url encoded POST data:
- * user=<username>&passwd=<pass>&mode=<PAM_AUTH|PAM_ACCT|PAM_SESS|PAM_PASS>&PSK=secret&do=auth
- * It should return either 200 OK with PSK in the body or 403 Forbidden if unsuccessful.
- */
+// pam_url - GPLv2, Sascha Thomas Spreitzer, https://fedorahosted.org/pam_url
 
 #include "pam_url.h"
 
