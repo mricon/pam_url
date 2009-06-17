@@ -1,3 +1,6 @@
 To install pam_url type:
-$ make all
+$ make clean all
 $ su -c "make install"
+
+To create a debuggable build type:
+$ make clean debug

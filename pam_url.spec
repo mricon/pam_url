@@ -1,4 +1,4 @@
-Summary: PAM module to fetch from URL.
+Summary: PAM module to authenticate with http servers.
 Name: pam_url
 Version: 0
 Release: 1
@@ -10,13 +10,14 @@ Requires: pam libcurl
 BuildRequires: pam-devel libcurl-devel
 
 %description
-PAM module to fetch from URL.
+PAM module to authenticate with http servers. 
+pam_url enabled you to literally form any web application that suits your ACL wishes.
 
 %prep
 %setup -n %{name}
 
 %build
-make DEBUG=1 DESTDIR=%{buildroot} all
+CFLAGS="%{optflags}" make DESTDIR=%{buildroot} all
 
 %install
 make DESTDIR=%{buildroot} install
@@ -31,6 +32,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Tue Jun 09 2009 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
+- Minor changes to description and summary. 
+- Changed build step to common rpm optflags.
 * Sun May 03 2009 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
 - First shot of rpm spec.
 

@@ -70,11 +70,10 @@ typedef struct pam_url_opts_ {
 	const void* passwd;
 } pam_url_opts;
 
-void notice(pam_handle_t* pamh, const char *msg);
 void debug(pam_handle_t* pamh, const char *msg);
 int get_password(pam_handle_t* pamh, pam_url_opts* opts);
 int parse_opts(pam_url_opts* opts, int argc, const char** argv, int mode);
-int fetch_url(pam_url_opts opts);
+int fetch_url(pam_handle_t *pamh, pam_url_opts opts);
 int check_psk(pam_url_opts opts);
 void cleanup(pam_url_opts* opts);
 

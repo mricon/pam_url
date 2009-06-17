@@ -5,16 +5,9 @@
 char* recvbuf = NULL;
 size_t recvbuf_size = 0;
 
-void notice(pam_handle_t* pamh, const char *msg)
-{
-	pam_syslog(pamh, LOG_NOTICE, "%s", msg);
-}
-
 void debug(pam_handle_t* pamh, const char *msg)
 {
-#ifdef DEBUG
 	pam_syslog(pamh, LOG_ERR, "%s", msg);
-#endif
 }
 
 int get_password(pam_handle_t* pamh, pam_url_opts* opts)
@@ -138,7 +131,13 @@ size_t curl_wf(void *ptr, size_t size, size_t nmemb, void *stream)
 	}
 }
 
-int fetch_url(pam_url_opts opts)
+int curl_debug(CURL *C, curl_infotype info, char * text, size_t textsize, void* pamh)
+{
+	debug((pam_handle_t*)pamh, text);
+	return 0;
+}
+
+int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 {
 	CURL* eh = NULL;
 	char* post = NULL;
@@ -180,7 +179,19 @@ int fetch_url(pam_url_opts opts)
 		curl_easy_cleanup(eh);
 		return PAM_AUTH_ERR;
 	}
-#endif
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGDATA, pamh) )
+	{
+		curl_easy_cleanup(eh);
+		return PAM_AUTH_ERR;
+	}
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGFUNCTION, curl_debug) )
+	{
+		curl_easy_cleanup(eh);
+		return PAM_AUTH_ERR;
+	}
+#endif /* DEBUG */
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_POSTFIELDS, post) )
 	{

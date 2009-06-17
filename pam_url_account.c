@@ -19,7 +19,7 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const c
 		debug(pamh, "Could not parse module options.");
 	}
 
-	if( PAM_SUCCESS != fetch_url(opts) )
+	if( PAM_SUCCESS != fetch_url(pamh, opts) )
 	{
 		ret++;
 		debug(pamh, "Could not fetch URL.");
@@ -31,12 +31,15 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const c
 		debug(pamh, "Pre Shared Key differs from ours.");
 	}
 
-	if( 0 == ret )
-		return PAM_SUCCESS;
-
-	debug(pamh, "Account aged out. Failing.");
-
 	cleanup(&opts);
 
-	return PAM_PERM_DENIED;
+	if( 0 == ret )
+	{
+		return PAM_SUCCESS;
+	}
+	else
+	{
+		debug(pamh, "Account aged out. Failing.");
+		return PAM_PERM_DENIED;
+	}
 }

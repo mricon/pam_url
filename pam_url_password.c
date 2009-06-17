@@ -52,7 +52,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags, int argc, const c
 	sprintf(opts.extrafield, "&newpass=%s%s", newp1, tmp);
 	free(tmp);
 
-	if( PAM_SUCCESS != fetch_url(opts) )
+	if( PAM_SUCCESS != fetch_url(pamh, opts) )
 	{
 		ret++;
 		debug(pamh, "Could not fetch URL.");

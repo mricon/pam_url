@@ -46,7 +46,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		debug(pamh, "Could not parse module options.");
 	}
 
-	if( PAM_SUCCESS != fetch_url(opts) )
+	if( PAM_SUCCESS != fetch_url(pamh, opts) )
 	{
 		ret++;
 		debug(pamh, "Could not fetch URL.");
@@ -58,11 +58,15 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		debug(pamh, "Pre Shared Key differs from ours.");
 	}
 
-	if( 0 == ret )
-		return PAM_SUCCESS;
-
-	debug(pamh, "Authentication failed.");
 	cleanup(&opts);
 
-	return PAM_AUTH_ERR;
+	if( 0 == ret )
+	{
+		return PAM_SUCCESS;
+	}
+	else
+	{
+		debug(pamh, "Authentication failed.");
+		return PAM_AUTH_ERR;
+	}
 }

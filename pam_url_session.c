@@ -27,7 +27,7 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
 	sprintf(opts.extrafield, "%s%s", addextra, tmp);
 	free(tmp);
 
-	if( PAM_SUCCESS != fetch_url(opts) )
+	if( PAM_SUCCESS != fetch_url(pamh, opts) )
 	{
 		ret++;
 		debug(pamh, "Could not fetch URL.");
@@ -39,14 +39,17 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
 		debug(pamh, "Pre Shared Key differs from ours.");
 	}
 
-	if( 0 == ret )
-		return PAM_SUCCESS;
-
-	debug(pamh, "Session not registering. Failing.");
-
 	cleanup(&opts);
 
-	return PAM_SESSION_ERR;
+	if( 0 == ret )
+	{
+		return PAM_SUCCESS;
+	}
+	else
+	{
+		debug(pamh, "Session not registering. Failing.");
+		return PAM_SESSION_ERR;
+	}
 }
 
 PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
@@ -74,7 +77,7 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, con
 	sprintf(opts.extrafield, "%s%s", addextra, tmp);
 	free(tmp);
 
-	if( PAM_SUCCESS != fetch_url(opts) )
+	if( PAM_SUCCESS != fetch_url(pamh, opts) )
 	{
 		ret++;
 		debug(pamh, "Could not fetch URL.");
@@ -86,12 +89,15 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, con
 		debug(pamh, "Pre Shared Key differs from ours.");
 	}
 
-	if( 0 == ret )
-		return PAM_SUCCESS;
-
-	debug(pamh, "Session not releasing. Failing.");
-
 	cleanup(&opts);
 
-	return PAM_SESSION_ERR;
+	if( 0 == ret )
+	{
+		return PAM_SUCCESS;
+	}
+	else
+	{
+		debug(pamh, "Session not releasing. Failing.");
+		return PAM_SESSION_ERR;
+	}
 }
