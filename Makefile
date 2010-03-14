@@ -31,6 +31,7 @@ clean:
 
 install:
 	install -D -m 755 ${obj} ${DESTDIR}/${pamlib}/${obj}
+	install -D -m 644 examples/pam_url.conf ${DESTDIR}/etc/pam_url.conf
 
 uninstall:
 	rm -f ${DESTDIR}/${pamlib}/${obj}

@@ -6,8 +6,8 @@ License: GPLv2
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.bz2
 BuildRoot: /var/tmp/%{name}-%{version}-root
-Requires: pam libcurl
-BuildRequires: pam-devel libcurl-devel
+Requires: pam libcurl libconfig
+BuildRequires: pam-devel libcurl-devel libconfig-devel
 
 %description
 PAM module to authenticate with http servers. 
@@ -33,6 +33,8 @@ cd -)
 %defattr(-,root,root)
 
 %changelog
+* Sun Mar 14 2010 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
+- Added dependency to libconfig
 * Tue Jun 09 2009 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
 - Minor changes to description and summary. 
 - Changed build step to common rpm optflags.
