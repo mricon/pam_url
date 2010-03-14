@@ -33,6 +33,11 @@
 	#error libcurl headers not found on this system. Giving up.
 #endif
 
+#include <libconfig.h>
+#ifndef __libconfig_h
+	#error libconfig headers not found on this system. Giving up.
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -58,6 +63,12 @@
 	#define DEF_EXTRA "&do=pam_url"
 #endif
 
+
+#define true 1
+#define false 0
+
+int pam_url_debug;
+
 typedef struct pam_url_opts_ {
 	char* url;
 	char* PSK;
@@ -65,6 +76,10 @@ typedef struct pam_url_opts_ {
 	char* passwdfield;
 	char* extrafield;
 	char* mode;
+	char* configfile;
+
+	int ssl_verify_peer;
+	int ssl_verify_host;
 
 	const void* user;
 	const void* passwd;

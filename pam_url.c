@@ -28,54 +28,29 @@ int get_password(pam_handle_t* pamh, pam_url_opts* opts)
 
 int parse_opts(pam_url_opts* opts, int argc, const char** argv, int mode)
 {
-	opts->url = calloc(1, strlen(DEF_URL) + 1);
-	strcpy(opts->url, DEF_URL);
+	int i = 0;
 
-	opts->PSK = calloc(1, strlen(DEF_PSK) + 1);
-	strcpy(opts->PSK, DEF_PSK);
+#ifdef DEBUG
+	pam_url_debug = 1;
+#else
+	pam_url_debug = 0;
+#endif
 
-	opts->userfield = calloc(1, strlen(DEF_USER) + 1);
-	strcpy(opts->userfield, DEF_USER);
-
-	opts->passwdfield = calloc(1, strlen(DEF_PASSWD) + 1);
-	strcpy(opts->passwdfield, DEF_PASSWD);
-
-	opts->extrafield = calloc(1, strlen(DEF_EXTRA) + 1);
-	strcpy(opts->extrafield, DEF_EXTRA);
-
-	if( 0 == argc )
+	if( 0 != argc && NULL != argv)
 	{
-		return PAM_SUCCESS;
-	}
+		for( i = 0; i <= argc; i++)
+		{
+			if( 0 == strcmp(argv[i], "debug") )
+			{
+				pam_url_debug = 1;
+			}
 
-	if( argc >= 1 )
-	{
-		opts->url = calloc(1, strlen(argv[0]) + 1);
-		strcpy(opts->url, argv[0]);
-	}
-
-	if( argc >= 2 )
-	{
-		opts->PSK = calloc(1, strlen(argv[1]) +1);
-		strcpy(opts->PSK, argv[1]);
-	}
-
-	if( argc >= 3 )
-	{
-		opts->userfield = calloc(1, strlen(argv[2]) + 1);
-		strcpy(opts->userfield, argv[2]);
-	}
-
-	if( argc >= 4 )
-	{
-		opts->passwdfield = calloc(1, strlen(argv[3]) + 1);
-		strcpy(opts->passwdfield, argv[3]);
-	}
-
-	if( argc >= 5 )
-	{
-		opts->extrafield = calloc(1, strlen(argv[4]) + 1);
-		strcpy(opts->extrafield, argv[4]);
+			if( 0 == strncmp(argv[i], "config=", strlen("config=")) )
+			{
+				opts->configfile = calloc(1, strlen(argv[i]) - strlen("config=") + 1 );
+				strcpy(opts->configfile, argv[i] + strlen("config=") );
+			}
+		}
 	}
 
 	switch(mode)
@@ -98,6 +73,50 @@ int parse_opts(pam_url_opts* opts, int argc, const char** argv, int mode)
 		default: // PAM_SM_AUTH
 			opts->mode = calloc(1, strlen("PAM_SM_AUTH") + 1);
 			strcpy(opts->mode,"PAM_SM_AUTH");
+	}
+
+	config_t config;
+	config_init(&config);
+	config_read_file(&config,"/etc/pam_url.conf");
+
+	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.uri", &opts->url) )
+	{
+		opts->url = calloc(1, strlen(DEF_URL) + 1);
+		strcpy(opts->url, DEF_URL);
+	}
+
+	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.presharedkey", &opts->PSK) )
+	{
+		opts->PSK = calloc(1, strlen(DEF_PSK) + 1);
+		strcpy(opts->PSK, DEF_PSK);
+	}
+
+	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.userfield", &opts->userfield) )
+	{
+		opts->userfield = calloc(1, strlen(DEF_USER) + 1);
+		strcpy(opts->userfield, DEF_USER);
+	}
+
+	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.passwdfield", &opts->passwdfield) )
+	{
+		opts->passwdfield = calloc(1, strlen(DEF_PASSWD) + 1);
+		strcpy(opts->passwdfield, DEF_PASSWD);
+	}
+
+	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.extradata", &opts->extrafield) )
+	{
+		opts->extrafield = calloc(1, strlen(DEF_EXTRA) + 1);
+		strcpy(opts->extrafield, DEF_EXTRA);
+	}
+
+	if( CONFIG_FALSE == config_lookup_bool(&config, "pam_url.ssl.verify_peer", &opts->ssl_verify_peer) )
+	{
+		opts->ssl_verify_peer = 1;
+	}
+
+	if( CONFIG_FALSE == config_lookup_bool(&config, "pam_url.ssl.verify_host", &opts->ssl_verify_host) )
+	{
+		opts->ssl_verify_host = 1;
 	}
 
 	return PAM_SUCCESS;
@@ -124,7 +143,7 @@ size_t curl_wf(void *ptr, size_t size, size_t nmemb, void *stream)
 	}
 	else
 	{
-		oldsize=recvbuf_size;
+		oldsize = recvbuf_size;
 		recvbuf_size += nmemb * size;
 		memcpy(recvbuf + oldsize, ptr, size * nmemb);
 		return(size*nmemb);
@@ -173,25 +192,26 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 	if( NULL == (eh = curl_easy_init() ) )
 		return PAM_AUTH_ERR;
 
-#ifdef DEBUG
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_VERBOSE, 1) )
+	if( 1 == pam_url_debug)
 	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_VERBOSE, 1) )
+		{
+			curl_easy_cleanup(eh);
+			return PAM_AUTH_ERR;
+		}
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGDATA, pamh) )
-	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGDATA, pamh) )
+		{
+			curl_easy_cleanup(eh);
+			return PAM_AUTH_ERR;
+		}
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGFUNCTION, curl_debug) )
-	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGFUNCTION, curl_debug) )
+		{
+			curl_easy_cleanup(eh);
+			return PAM_AUTH_ERR;
+		}
 	}
-#endif /* DEBUG */
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_POSTFIELDS, post) )
 	{
@@ -217,16 +237,38 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		return PAM_AUTH_ERR;
 	}
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYHOST, 2) )
+	if( opts.ssl_verify_host == 1 )
 	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYHOST, 2) )
+		{
+			curl_easy_cleanup(eh);
+			return PAM_AUTH_ERR;
+		}
+	}
+	else
+	{
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYHOST, 0) )
+		{
+			curl_easy_cleanup(eh);
+			return PAM_AUTH_ERR;
+		}
 	}
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYPEER, 1) )
+	if( opts.ssl_verify_peer == 1 )
 	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYPEER, 1) )
+		{
+			curl_easy_cleanup(eh);
+			return PAM_AUTH_ERR;
+		}
+	}
+	else
+	{
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYPEER, 0) )
+		{
+			curl_easy_cleanup(eh);
+			return PAM_AUTH_ERR;
+		}
 	}
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_FAILONERROR, 1) )

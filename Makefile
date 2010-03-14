@@ -1,8 +1,10 @@
 # pam_url - GPLv2, Sascha Thomas Spreitzer, https://fedorahosted.org/pam_url
 
-CFLAGS		+= -fPIC
+libs		+= libcurl libconfig
 
-LDFLAGS		:= -shared -lpam -lcurl
+CFLAGS		+= -fPIC -pthread $(shell pkg-config --cflags ${libs})
+
+LDFLAGS		:= -shared -lpam -pthread $(shell pkg-config --libs ${libs})
 
 arch		:= $(shell uname -m)
 pamlib		:= lib/security
@@ -19,7 +21,7 @@ endif
 all: ${obj}
 
 debug:
-	CFLAGS="-g3 -O0 -DDEBUG=1" ${MAKE} all
+	CFLAGS="-g3 -O0" ${MAKE} all
 
 ${obj}: ${objo}
 	${CC} ${LDFLAGS} -o ${obj} ${objo}
