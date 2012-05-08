@@ -11,7 +11,6 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
                                    int argc, const char **argv)
 {
 	pam_url_opts opts;
-
 	int ret = 0;
 
 	if ( PAM_SUCCESS != pam_get_item(pamh, PAM_USER, &opts.user) )
@@ -24,6 +23,12 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	{
 		ret++;
 		debug(pamh, "Could not get password item from pam.");
+	}
+
+	if( PAM_SUCCESS != parse_opts(&opts, argc, argv, PAM_SM_AUTH) )
+	{
+		ret++;
+		debug(pamh, "Could not parse module options.");
 	}
 
 	if( NULL == opts.passwd )
@@ -40,22 +45,16 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		}
 	}
 
-	if( PAM_SUCCESS != parse_opts(&opts, argc, argv, PAM_SM_AUTH) )
-	{
-		ret++;
-		debug(pamh, "Could not parse module options.");
-	}
-
 	if( PAM_SUCCESS != fetch_url(pamh, opts) )
 	{
 		ret++;
 		debug(pamh, "Could not fetch URL.");
 	}
 
-	if( PAM_SUCCESS != check_psk(opts) )
+	if( PAM_SUCCESS != check_rc(opts) )
 	{
 		ret++;
-		debug(pamh, "Pre Shared Key differs from ours.");
+		debug(pamh, "Wrong Return Code.");
 	}
 
 	cleanup(&opts);

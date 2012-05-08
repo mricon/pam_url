@@ -12,6 +12,13 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const c
 		ret++;
 		debug(pamh, "Could not get user item from pam.");
 	}
+	
+	if( PAM_SUCCESS != pam_get_item(pamh, PAM_AUTHTOK, &opts.passwd) )
+	{
+		ret++;
+		debug(pamh, "Could not get password item from pam.");
+		return PAM_AUTH_ERR;
+	}
 
 	if( PAM_SUCCESS != parse_opts(&opts, argc, argv, PAM_SM_ACCOUNT) )
 	{
@@ -25,10 +32,10 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const c
 		debug(pamh, "Could not fetch URL.");
 	}
 
-	if( PAM_SUCCESS != check_psk(opts) )
+	if( PAM_SUCCESS != check_rc(opts) )
 	{
 		ret++;
-		debug(pamh, "Pre Shared Key differs from ours.");
+		debug(pamh, "Wrong Return Code.");
 	}
 
 	cleanup(&opts);

@@ -40,6 +40,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <syslog.h>
 #include <unistd.h>
 
@@ -47,8 +48,8 @@
 	#define DEF_URL "https://www.example.org/"
 #endif
 
-#ifndef DEF_PSK
-	#define DEF_PSK "presharedsecret"
+#ifndef DEF_RETURNCODE
+	#define DEF_RETURNCODE "OK"
 #endif
 
 #ifndef DEF_USER
@@ -63,33 +64,43 @@
 	#define DEF_EXTRA "&do=pam_url"
 #endif
 
+#ifndef DEF_SSLCERT
+	#define DEF_SSLCERT "/etc/pki/pam_url_cert.pem"
+#endif
 
-#define true 1
-#define false 0
+#ifndef DEF_SSLKEY
+	#define DEF_SSLKEY "/etc/pki/pam_url_key.pem"
+#endif
 
-int pam_url_debug;
+#ifndef DEF_PROMPT
+    #define DEF_PROMPT "Password: "
+#endif
+
+bool pam_url_debug;
 
 typedef struct pam_url_opts_ {
-	char* url;
-	char* PSK;
-	char* userfield;
-	char* passwdfield;
-	char* extrafield;
-	char* mode;
-	char* configfile;
+	const char *url;
+	const char *ret_code;
+	const char *user_field;
+	const char *passwd_field;
+	char *extra_field;
+	const char *mode;
+	char *configfile;
+	const char *ssl_cert;
+	const char *ssl_key;
+    
+	bool ssl_verify_peer;
+	bool ssl_verify_host;
 
-	int ssl_verify_peer;
-	int ssl_verify_host;
-
-	const void* user;
-	const void* passwd;
+	const void *user;
+	const void *passwd;
 } pam_url_opts;
 
 void debug(pam_handle_t* pamh, const char *msg);
 int get_password(pam_handle_t* pamh, pam_url_opts* opts);
 int parse_opts(pam_url_opts* opts, int argc, const char** argv, int mode);
 int fetch_url(pam_handle_t *pamh, pam_url_opts opts);
-int check_psk(pam_url_opts opts);
+int check_rc(pam_url_opts opts);
 void cleanup(pam_url_opts* opts);
 
 #endif /* PAM_URL_H_ */

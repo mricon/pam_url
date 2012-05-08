@@ -1,24 +1,22 @@
-Summary: PAM module to authenticate with http servers.
+Summary: PAM module to authenticate with HTTP servers
 Name: pam_url
 Version: 0.1
-Release: 0%{?dist}
+Release: 1%{?dist}
 License: GPLv2
 Group: System Environment/Base
+URL: https://fedorahosted.org/pam_url
 Source: %{name}-%{version}.tar.bz2
-BuildRoot: /var/tmp/%{name}-%{version}-root
-Requires: pam libcurl libconfig
+Requires: pam
 BuildRequires: pam-devel libcurl-devel libconfig-devel
 
 %description
-PAM module to authenticate with http servers. 
-pam_url enabled you to literally form any web application that suits your ACL wishes.
+pam_url enables you to authenticate users from a Web application.
 
 %prep
-%setup -n %{name}-%{version}
+%setup -q -n %{name}-%{version}
 
 %build
-%{__rm} -rf %{buildroot}
-CFLAGS="%{optflags}" make DESTDIR=%{buildroot} all
+CFLAGS="%{optflags} -std=c99" make %{?_smp_mflags} all
 
 %install
 make DESTDIR=%{buildroot} install
@@ -26,13 +24,16 @@ make DESTDIR=%{buildroot} install
 find . -type f | sed 's/^\.//g' > /var/tmp/%{name}-files
 cd -)
 
-%clean
-%{__rm} -rf %{buildroot}
-
 %files -f /var/tmp/%{name}-files
 %defattr(-,root,root)
+%config(noreplace) /etc/pam_url.conf
 
 %changelog
+* Tue May 08 2012 Andrew Wilcox <corgi@fedorapeople.org> 0.1-1
+- Bring spec up to date with current guidelines (no clean/Buildroot)
+- Modified CFLAGS
+- Prettified description
+- Set config file path
 * Sun Mar 14 2010 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
 - Added dependency to libconfig
 * Tue Jun 09 2009 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>

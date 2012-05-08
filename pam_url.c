@@ -2,8 +2,12 @@
 
 #include "pam_url.h"
 
+#include <stdio.h>
+#include <stdint.h>
+
 char* recvbuf = NULL;
 size_t recvbuf_size = 0;
+static config_t config;
 
 void debug(pam_handle_t* pamh, const char *msg)
 {
@@ -13,9 +17,15 @@ void debug(pam_handle_t* pamh, const char *msg)
 int get_password(pam_handle_t* pamh, pam_url_opts* opts)
 {
 	char* p = NULL;
-	pam_prompt(pamh, PAM_PROMPT_ECHO_OFF, &p, "%s", "Password: ");
+	const char *prompt;
+	int prompt_len = 0;
 
-	if( NULL != p )
+	if(config_lookup_string(&config, "pam_url.settings.prompt", &prompt) == CONFIG_FALSE)
+		prompt = DEF_PROMPT;
+	
+	pam_prompt(pamh, PAM_PROMPT_ECHO_OFF, &p, "%s", prompt);
+	
+	if( NULL != p && strlen(p) > 0)
 	{
 		opts->passwd = p;
 		return PAM_SUCCESS;
@@ -26,101 +36,91 @@ int get_password(pam_handle_t* pamh, pam_url_opts* opts)
 	}
 }
 
-int parse_opts(pam_url_opts* opts, int argc, const char** argv, int mode)
+
+int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 {
-	int i = 0;
-
-#ifdef DEBUG
-	pam_url_debug = 1;
+#if defined(DEBUG)
+	pam_url_debug = true;
 #else
-	pam_url_debug = 0;
+	pam_url_debug = false;
 #endif
-
-	if( 0 != argc && NULL != argv)
-	{
-		for( i = 0; i <= argc; i++)
+	opts->configfile = NULL;
+	
+	if(argc > 1 && argv != NULL)
+	{	
+		for(int next_arg = 1; next_arg < argc; next_arg++)
 		{
-			if( 0 == strcmp(argv[i], "debug") )
+			if(strcmp(argv[next_arg], "debug") == 0)
 			{
-				pam_url_debug = 1;
+				pam_url_debug = true;
+				continue;
 			}
-
-			if( 0 == strncmp(argv[i], "config=", strlen("config=")) )
+			
+			if(strncmp(argv[next_arg], "config=", 7) == 0)
 			{
-				opts->configfile = calloc(1, strlen(argv[i]) - strlen("config=") + 1 );
-				strcpy(opts->configfile, argv[i] + strlen("config=") );
+				// Skip the first 7 chars ('config=').
+				opts->configfile = strdup(argv[next_arg] + 7);
+				continue;
 			}
 		}
 	}
-
+	
+	if(opts->configfile == NULL)
+		opts->configfile = strdup("/etc/pam_url.conf");
+	
 	switch(mode)
 	{
 		case PAM_SM_ACCOUNT:
-			opts->mode = calloc(1, strlen("PAM_SM_ACCOUNT") + 1);
-			strcpy(opts->mode, "PAM_SM_ACCOUNT");
+			opts->mode = "PAM_SM_ACCOUNT";
 			break;
-
 		case PAM_SM_SESSION:
-			opts->mode = calloc(1, strlen("PAM_SM_SESSION") + 1);
-			strcpy(opts->mode, "PAM_SM_SESSION");
+			opts->mode = "PAM_SM_SESSION";
 			break;
-
 		case PAM_SM_PASSWORD:
-			opts->mode = calloc(1, strlen("PAM_SM_PASSWORD") + 1);
-			strcpy(opts->mode, "PAM_SM_PASSWORD");
+			opts->mode = "PAM_SM_PASSWORD";
 			break;
-
-		default: // PAM_SM_AUTH
-			opts->mode = calloc(1, strlen("PAM_SM_AUTH") + 1);
-			strcpy(opts->mode,"PAM_SM_AUTH");
+		case PAM_SM_AUTH:
+		default:
+			opts->mode = "PAM_SM_AUTH";
+			break;
 	}
-
-	config_t config;
+	
 	config_init(&config);
-	config_read_file(&config,"/etc/pam_url.conf");
-
-	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.uri", &opts->url) )
-	{
-		opts->url = calloc(1, strlen(DEF_URL) + 1);
-		strcpy(opts->url, DEF_URL);
-	}
-
-	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.presharedkey", &opts->PSK) )
-	{
-		opts->PSK = calloc(1, strlen(DEF_PSK) + 1);
-		strcpy(opts->PSK, DEF_PSK);
-	}
-
-	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.userfield", &opts->userfield) )
-	{
-		opts->userfield = calloc(1, strlen(DEF_USER) + 1);
-		strcpy(opts->userfield, DEF_USER);
-	}
-
-	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.passwdfield", &opts->passwdfield) )
-	{
-		opts->passwdfield = calloc(1, strlen(DEF_PASSWD) + 1);
-		strcpy(opts->passwdfield, DEF_PASSWD);
-	}
-
-	if( CONFIG_FALSE == config_lookup_string(&config, "pam_url.settings.extradata", &opts->extrafield) )
-	{
-		opts->extrafield = calloc(1, strlen(DEF_EXTRA) + 1);
-		strcpy(opts->extrafield, DEF_EXTRA);
-	}
-
-	if( CONFIG_FALSE == config_lookup_bool(&config, "pam_url.ssl.verify_peer", &opts->ssl_verify_peer) )
-	{
-		opts->ssl_verify_peer = 1;
-	}
-
-	if( CONFIG_FALSE == config_lookup_bool(&config, "pam_url.ssl.verify_host", &opts->ssl_verify_host) )
-	{
-		opts->ssl_verify_host = 1;
-	}
-
+	config_read_file(&config, opts->configfile);
+	
+	// General Settings
+	if(config_lookup_string(&config, "pam_url.settings.url", &opts->url) == CONFIG_FALSE)
+		opts->url = DEF_URL;
+	
+	if(config_lookup_string(&config, "pam_url.settings.returncode", &opts->ret_code) == CONFIG_FALSE)
+		opts->ret_code = DEF_RETURNCODE;
+	
+	if(config_lookup_string(&config, "pam_url.settings.userfield", &opts->user_field) == CONFIG_FALSE)
+		opts->user_field = DEF_USER;
+	
+	if(config_lookup_string(&config, "pam_url.settings.passwdfield", &opts->passwd_field) == CONFIG_FALSE)
+		opts->passwd_field = DEF_PASSWD;
+	
+	if(config_lookup_string(&config, "pam_url.settings.extradata", &opts->extra_field) == CONFIG_FALSE)
+		opts->extra_field = DEF_EXTRA;
+	
+	
+	// SSL Options
+	if(config_lookup_string(&config, "pam_url.ssl.client_cert", &opts->ssl_cert) == CONFIG_FALSE)
+		opts->ssl_cert = DEF_SSLCERT;
+	
+	if(config_lookup_string(&config, "pam_url.ssl.client_key", &opts->ssl_key) == CONFIG_FALSE)
+		opts->ssl_key = DEF_SSLKEY;
+	
+	if(config_lookup_bool(&config, "pam_url.ssl.verify_host", (int *)&opts->ssl_verify_host) == CONFIG_FALSE)
+		opts->ssl_verify_host = true;
+	
+	if(config_lookup_bool(&config, "pam_url.ssl.verify_peer", (int *)&opts->ssl_verify_peer) == CONFIG_FALSE)
+		opts->ssl_verify_peer = true;
+	
 	return PAM_SUCCESS;
 }
+
 
 size_t curl_wf(void *ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -137,6 +137,13 @@ size_t curl_wf(void *ptr, size_t size, size_t nmemb, void *stream)
 		}
 	}
 
+	// Check the multiplication for an overflow
+	if (((nmemb * size) > (SIZE_MAX / nmemb)) ||
+			// Check the addition for an overflow
+			((SIZE_MAX - recvbuf_size) < (nmemb * size))) {
+		// The arithmetic will cause an integer overflow
+		return 0;
+	}
 	if( NULL == ( recvbuf = realloc(recvbuf, recvbuf_size + (nmemb * size)) ) )
 	{
 		return 0;
@@ -160,136 +167,111 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 {
 	CURL* eh = NULL;
 	char* post = NULL;
+	int ret = 0;
 
 	if( NULL == opts.user )
-		opts.user = calloc(1,1);
+		opts.user = "";
 
 	if( NULL == opts.passwd )
-		opts.passwd = calloc(1,1);
+		opts.passwd = "";
 
-	post = calloc(1,strlen(opts.userfield) +
-					strlen("=") +
-					strlen(opts.user) +
-					strlen("&") +
-					strlen(opts.passwdfield) +
-					strlen("=") +
-					strlen(opts.passwd) +
-					strlen("&mode=") +
-					strlen(opts.mode) +
-					strlen(opts.extrafield) +
-					strlen("\0") );
-
-	sprintf(post, "%s=%s&%s=%s&mode=%s%s", opts.userfield,
+	ret = asprintf(&post, "%s=%s&%s=%s&mode=%s%s", opts.user_field,
 													(char*)opts.user,
-													opts.passwdfield,
+													opts.passwd_field,
 													(char*)opts.passwd,
 													opts.mode,
-													opts.extrafield);
+													opts.extra_field);
+
+	if (ret == -1)
+		// If this happens, the contents of post are undefined, we could
+		// end up freeing an uninitialized pointer, which could crash (but
+		// should not have security implications in this context).
+		goto curl_error;
 
 	if( 0 != curl_global_init(CURL_GLOBAL_ALL) )
-		return PAM_AUTH_ERR;
+		goto curl_error;
 
 	if( NULL == (eh = curl_easy_init() ) )
-		return PAM_AUTH_ERR;
+		goto curl_error;
 
 	if( 1 == pam_url_debug)
 	{
 		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_VERBOSE, 1) )
-		{
-			curl_easy_cleanup(eh);
-			return PAM_AUTH_ERR;
-		}
+			goto curl_error;
 
 		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGDATA, pamh) )
-		{
-			curl_easy_cleanup(eh);
-			return PAM_AUTH_ERR;
-		}
+			goto curl_error;
 
 		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_DEBUGFUNCTION, curl_debug) )
-		{
-			curl_easy_cleanup(eh);
-			return PAM_AUTH_ERR;
-		}
+			goto curl_error;
 	}
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_POSTFIELDS, post) )
-	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
+		goto curl_error;
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_USERAGENT, USER_AGENT) )
-	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
+		goto curl_error;
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, curl_wf) )
-	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
+		goto curl_error;
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_URL, opts.url) )
-	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
+		goto curl_error;
 
-	if( opts.ssl_verify_host == 1 )
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERT, opts.ssl_cert) )
+		goto curl_error;
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERTTYPE, "PEM") )
+		goto curl_error;
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEY, opts.ssl_key) )
+		goto curl_error;
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEYTYPE, "PEM") )
+		goto curl_error;
+
+	if( opts.ssl_verify_host == true )
 	{
 		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYHOST, 2) )
-		{
-			curl_easy_cleanup(eh);
-			return PAM_AUTH_ERR;
-		}
+			goto curl_error;
 	}
 	else
 	{
 		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYHOST, 0) )
-		{
-			curl_easy_cleanup(eh);
-			return PAM_AUTH_ERR;
-		}
+			goto curl_error;
 	}
 
-	if( opts.ssl_verify_peer == 1 )
+	if( opts.ssl_verify_peer == true )
 	{
 		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYPEER, 1) )
-		{
-			curl_easy_cleanup(eh);
-			return PAM_AUTH_ERR;
-		}
+			goto curl_error;
 	}
 	else
 	{
 		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSL_VERIFYPEER, 0) )
-		{
-			curl_easy_cleanup(eh);
-			return PAM_AUTH_ERR;
-		}
+			goto curl_error;
 	}
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_FAILONERROR, 1) )
-	{
-		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
+		goto curl_error;
 
 	if( CURLE_OK != curl_easy_perform(eh) )
-	{
+		goto curl_error;
+
+	// No errors
+	curl_easy_cleanup(eh);
+	free(post);
+	return PAM_SUCCESS;
+
+curl_error:
+	if (eh != NULL)
 		curl_easy_cleanup(eh);
-		return PAM_AUTH_ERR;
-	}
-	else
-	{
-		curl_easy_cleanup(eh);
-		return PAM_SUCCESS;
-	}
+	if (post != NULL)
+		free(post);
+	return PAM_AUTH_ERR;
 }
 
-int check_psk(pam_url_opts opts)
+int check_rc(pam_url_opts opts)
 {
 	int ret=0;
 
@@ -299,7 +281,7 @@ int check_psk(pam_url_opts opts)
 		return PAM_AUTH_ERR;
 	}
 
-	if( 0 != memcmp(opts.PSK, recvbuf, strlen(opts.PSK)) )
+	if( 0 != memcmp(opts.ret_code, recvbuf, strlen(opts.ret_code)) )
 		ret++;
 
 	if( 0 != ret )
@@ -315,7 +297,12 @@ int check_psk(pam_url_opts opts)
 void cleanup(pam_url_opts* opts)
 {
 	if( NULL != recvbuf )
+	{
 		free(recvbuf);
+		recvbuf = NULL;
+	}
 
 	recvbuf_size=0;
+	free(opts->configfile);
+	config_destroy(&config);
 }

@@ -6,6 +6,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags, int argc, const c
 {
 	pam_url_opts opts;
 	int ret=0;
+    int len = 0;
 	char *newp1 = NULL, *newp2 = NULL;
 	char *tmp = NULL;
 
@@ -44,12 +45,17 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags, int argc, const c
 		}
 	}
 
-	opts.extrafield = realloc(opts.extrafield, strlen(opts.extrafield) +
-												strlen("&newpass=") +
-												strlen(newp1) + 1);
-	tmp = calloc(1, strlen(opts.extrafield) );
-	sprintf(tmp, "%s", opts.extrafield );
-	sprintf(opts.extrafield, "&newpass=%s%s", newp1, tmp);
+	len = strlen(opts.extra_field) + strlen("&newpass=") + strlen(newp1) + 1;
+	opts.extra_field = realloc(opts.extra_field, len);
+	if (opts.extra_field == NULL)
+		goto done;
+
+	tmp = calloc(1, strlen(opts.extra_field) + 1);
+	if (tmp == NULL)
+		goto done;
+
+	snprintf(tmp, strlen(opts.extra_field) + 1, "%s", opts.extra_field);
+	snprintf(opts.extra_field, len, "&newpass=%s%s", newp1, tmp);
 	free(tmp);
 
 	if( PAM_SUCCESS != fetch_url(pamh, opts) )
@@ -58,13 +64,16 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags, int argc, const c
 		debug(pamh, "Could not fetch URL.");
 	}
 
-	if( PAM_SUCCESS != check_psk(opts) )
+	if( PAM_SUCCESS != check_rc(opts) )
 	{
 		ret++;
-		debug(pamh, "Pre Shared Key differs from ours.");
+		debug(pamh, "Wrong Return Code.");
 	}
 
+done:
+
 	cleanup(&opts);
+	free(opts.extra_field);
 
 	if( 0 == ret )
 	{

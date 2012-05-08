@@ -6,6 +6,7 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
 {
 	pam_url_opts opts;
 	int ret=0;
+	int len = 0;
 	char* addextra = "&PAM_SM_SESSION=open";
 	char* tmp = NULL;
 
@@ -21,10 +22,16 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
 		debug(pamh, "Could not parse module options.");
 	}
 
-	opts.extrafield = realloc(opts.extrafield, strlen(opts.extrafield) + strlen(addextra) + 1);
-	tmp = calloc(1, strlen(opts.extrafield) );
-	sprintf(tmp, "%s", opts.extrafield );
-	sprintf(opts.extrafield, "%s%s", addextra, tmp);
+	len = strlen(opts.extra_field) + strlen(addextra) + 1;
+	opts.extra_field = realloc(opts.extra_field, len);
+	if (opts.extra_field == NULL)
+		goto done;
+
+	tmp = calloc(1, strlen(opts.extra_field) + 1);
+	if (tmp == NULL)
+		goto done;
+	snprintf(tmp, strlen(opts.extra_field) + 1, "%s", opts.extra_field);
+	snprintf(opts.extra_field, len, "%s%s", addextra, tmp);
 	free(tmp);
 
 	if( PAM_SUCCESS != fetch_url(pamh, opts) )
@@ -33,11 +40,13 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
 		debug(pamh, "Could not fetch URL.");
 	}
 
-	if( PAM_SUCCESS != check_psk(opts) )
+	if( PAM_SUCCESS != check_rc(opts) )
 	{
 		ret++;
-		debug(pamh, "Pre Shared Key differs from ours.");
+		debug(pamh, "Wrong Return Code");
 	}
+
+done:
 
 	cleanup(&opts);
 
@@ -56,6 +65,7 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, con
 {
 	pam_url_opts opts;
 	int ret=0;
+	int len = 0;
 	char* addextra = "&PAM_SM_SESSION=close";
 	char* tmp = NULL;
 
@@ -71,10 +81,17 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, con
 		debug(pamh, "Could not parse module options.");
 	}
 
-	opts.extrafield = realloc(opts.extrafield, strlen(opts.extrafield) + strlen(addextra) + 1);
-	tmp = calloc(1, strlen(opts.extrafield) );
-	sprintf(tmp, "%s", opts.extrafield );
-	sprintf(opts.extrafield, "%s%s", addextra, tmp);
+	len = strlen(opts.extra_field) + strlen(addextra) + 1;
+	opts.extra_field = realloc(opts.extra_field, len);
+	if (opts.extra_field == NULL)
+		goto done;
+
+	tmp = calloc(1, strlen(opts.extra_field) + 1);
+	if (tmp == NULL)
+		goto done;
+
+	snprintf(tmp, strlen(opts.extra_field) + 1, "%s", opts.extra_field );
+	snprintf(opts.extra_field, len, "%s%s", addextra, tmp);
 	free(tmp);
 
 	if( PAM_SUCCESS != fetch_url(pamh, opts) )
@@ -83,12 +100,13 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, con
 		debug(pamh, "Could not fetch URL.");
 	}
 
-	if( PAM_SUCCESS != check_psk(opts) )
+	if( PAM_SUCCESS != check_rc(opts) )
 	{
 		ret++;
-		debug(pamh, "Pre Shared Key differs from ours.");
+		debug(pamh, "Wrong Return Code.");
 	}
 
+done:
 	cleanup(&opts);
 
 	if( 0 == ret )
