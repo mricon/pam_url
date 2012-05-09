@@ -46,9 +46,9 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 #endif
 	opts->configfile = NULL;
 	
-	if(argc > 1 && argv != NULL)
+	if(argc > 0 && argv != NULL)
 	{	
-		for(int next_arg = 1; next_arg < argc; next_arg++)
+		for(int next_arg = 0; next_arg < argc; next_arg++)
 		{
 			if(strcmp(argv[next_arg], "debug") == 0)
 			{
