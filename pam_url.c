@@ -174,24 +174,35 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 
 	if( NULL == opts.passwd )
 		opts.passwd = "";
+	
+	if( 0 != curl_global_init(CURL_GLOBAL_ALL) )
+		goto curl_error;
+
+	if( NULL == (eh = curl_easy_init() ) )
+		goto curl_error;
+
+	char *safe_user = curl_easy_escape(eh, opts.user, 0);
+	if( safe_user == NULL )
+		goto curl_error;
+	
+	char *safe_passwd = curl_easy_escape(eh, opts.passwd, 0);
+	if( safe_passwd == NULL )
+		goto curl_error;
 
 	ret = asprintf(&post, "%s=%s&%s=%s&mode=%s%s", opts.user_field,
-													(char*)opts.user,
-													opts.passwd_field,
-													(char*)opts.passwd,
-													opts.mode,
-													opts.extra_field);
+							safe_user,
+							opts.passwd_field,
+							safe_passwd,
+							opts.mode,
+							opts.extra_field);
+	
+	curl_free(safe_passwd);
+	curl_free(safe_user);
 
 	if (ret == -1)
 		// If this happens, the contents of post are undefined, we could
 		// end up freeing an uninitialized pointer, which could crash (but
 		// should not have security implications in this context).
-		goto curl_error;
-
-	if( 0 != curl_global_init(CURL_GLOBAL_ALL) )
-		goto curl_error;
-
-	if( NULL == (eh = curl_easy_init() ) )
 		goto curl_error;
 
 	if( 1 == pam_url_debug)
