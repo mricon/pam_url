@@ -1,6 +1,6 @@
 Summary: PAM module to authenticate with HTTP servers
 Name: pam_url
-Version: 0.1
+Version: 0.2
 Release: 1%{?dist}
 License: GPLv2
 Group: System Environment/Base
@@ -29,16 +29,22 @@ cd -)
 %config(noreplace) /etc/pam_url.conf
 
 %changelog
+* Mon Nov 19 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.2-1
+- Prepare for 0.2 release
+
 * Tue May 08 2012 Andrew Wilcox <corgi@fedorapeople.org> 0.1-1
 - Bring spec up to date with current guidelines (no clean/Buildroot)
 - Modified CFLAGS
 - Prettified description
 - Set config file path
+
 * Sun Mar 14 2010 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
 - Added dependency to libconfig
+
 * Tue Jun 09 2009 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
 - Minor changes to description and summary. 
 - Changed build step to common rpm optflags.
+
 * Sun May 03 2009 Sascha Thomas Spreitzer <sspreitzer@fedoraproject.org>
 - First shot of rpm spec.
 
