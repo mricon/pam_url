@@ -25,6 +25,7 @@ make DESTDIR=%{buildroot} install
 
 %files
 %defattr(-,root,root,-)
+%doc AUTHOR COPYING INSTALL README examples
 %config(noreplace) %{_sysconfdir}/pam_url.conf
 /%{_lib}/security/pam_url.so
 
@@ -33,6 +34,7 @@ make DESTDIR=%{buildroot} install
 * Mon Nov 19 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.2-1
 - Prepare for 0.2 release
 - Set the epoch to 1 to solve branching issues with other releases
+- Add doc files
 
 * Tue May 08 2012 Andrew Wilcox <corgi@fedorapeople.org> 0.1-1
 - Bring spec up to date with current guidelines (no clean/Buildroot)
