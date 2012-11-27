@@ -17,6 +17,9 @@ objo		:= ${objc:%.c=%.o}
 ifeq (${arch},x86_64)
 pamlib := lib64/security
 endif
+ifeq (${arch},ppc64)
+pamlib := lib64/security
+endif
 
 all: ${obj}
 
