@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 
 char* recvbuf = NULL;
 size_t recvbuf_size = 0;

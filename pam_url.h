@@ -38,6 +38,7 @@
 	#error libconfig headers not found on this system. Giving up.
 #endif
 
+#define __USE_XOPEN_EXTENDED
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
