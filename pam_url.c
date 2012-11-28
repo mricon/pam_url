@@ -111,6 +111,8 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	
 	if(config_lookup_string(&config, "pam_url.ssl.client_key", &opts->ssl_key) == CONFIG_FALSE)
 		opts->ssl_key = DEF_SSLKEY;
+	if(config_lookup_string(&config, "pam_url.ssl.ca_cert", &opts->ca_cert) == CONFIG_FALSE)
+		opts->ca_cert = DEF_CA_CERT;
 	
 	if(config_lookup_bool(&config, "pam_url.ssl.verify_host", (int *)&opts->ssl_verify_host) == CONFIG_FALSE)
 		opts->ssl_verify_host = true;
@@ -239,6 +241,9 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		goto curl_error;
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEYTYPE, "PEM") )
+		goto curl_error;
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_CAINFO, opts.ca_cert) )
 		goto curl_error;
 
 	if( opts.ssl_verify_host == true )

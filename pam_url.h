@@ -65,12 +65,16 @@
 	#define DEF_EXTRA "&do=pam_url"
 #endif
 
-#ifndef DEF_SSLCERT
-	#define DEF_SSLCERT "/etc/pki/pam_url_cert.pem"
+#ifndef DEF_CA_CERT
+	#define DEF_CA_CERT "/etc/pki/tls/certs/ca-bundle.crt"
 #endif
 
 #ifndef DEF_SSLKEY
 	#define DEF_SSLKEY "/etc/pki/pam_url_key.pem"
+#endif
+
+#ifndef DEF_SSLCERT
+    #define DEF_SSLCERT "/etc/pki/pam_url_cert.pem"
 #endif
 
 #ifndef DEF_PROMPT
@@ -89,6 +93,7 @@ typedef struct pam_url_opts_ {
 	char *configfile;
 	const char *ssl_cert;
 	const char *ssl_key;
+	const char *ca_cert;    
     
 	bool ssl_verify_peer;
 	bool ssl_verify_host;
