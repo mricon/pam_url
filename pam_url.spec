@@ -1,6 +1,6 @@
 Summary:        PAM module to authenticate with HTTP servers
 Name:           pam_url
-Version:        0.2
+Version:        0.3
 Release:        1%{?dist}
 Epoch:          1
 License:        GPLv2
@@ -31,6 +31,9 @@ make DESTDIR=%{buildroot} install
 
 
 %changelog
+* Wed Nov 28 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.3-1
+- Upstream 0.3 with support for CA_CERT, plus minor bugfixes.
+
 * Mon Nov 19 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.2-1
 - Prepare for 0.2 release
 - Set the epoch to 1 to solve branching issues with other releases
