@@ -296,13 +296,14 @@ int check_rc(pam_url_opts opts)
 		return PAM_AUTH_ERR;
 	}
 
-	if( 0 != strcmp(opts.ret_code, recvbuf) )
+	if( strlen(opts.ret_code) == recvbuf_size &&
+            0 == strncmp(opts.ret_code, recvbuf, recvbuf_size) )
 	{
-		return PAM_AUTH_ERR;
+		return PAM_SUCCESS;
 	}
 	else
 	{
-		return PAM_SUCCESS;
+		return PAM_AUTH_ERR;
 	}
 }
 
