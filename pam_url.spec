@@ -18,7 +18,7 @@ such as totpcgi.
 %setup -q
 
 %build
-CFLAGS="%{optflags} -std=c99" make %{?_smp_mflags} all
+CFLAGS="%{optflags} -std=c99" -D_GNU_SOURCE make %{?_smp_mflags} all
 
 %install
 make DESTDIR=%{buildroot} install
