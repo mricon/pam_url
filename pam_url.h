@@ -95,8 +95,8 @@ typedef struct pam_url_opts_ {
 	const char *ssl_key;
 	const char *ca_cert;    
     
-	bool ssl_verify_peer;
-	bool ssl_verify_host;
+	int ssl_verify_peer;
+	int ssl_verify_host;
 
 	const void *user;
 	const void *passwd;
