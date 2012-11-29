@@ -293,18 +293,10 @@ int check_rc(pam_url_opts opts)
 
 	if( NULL == recvbuf )
 	{
-		ret++;
 		return PAM_AUTH_ERR;
 	}
 
-
-    if ( strlen(opts.ret_code) != strlen(recvbuf) )
-        ret++;
-        
-	if( 0 != memcmp(opts.ret_code, recvbuf, strlen(opts.ret_code)) )
-		ret++;
-
-	if( 0 != ret )
+	if( 0 != strcmp(opts.ret_code, recvbuf) )
 	{
 		return PAM_AUTH_ERR;
 	}
