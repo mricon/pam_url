@@ -19,14 +19,10 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		debug(pamh, "Could not get user item from pam.");
 	}
 
-	if( true == opts.use_first_pass ) {
-		debug(pamh, "use_first_pass set. Attempting to get password from pam.");
-
-		if( PAM_SUCCESS != pam_get_item(pamh, PAM_AUTHTOK, &opts.passwd) )
-		{
-			ret++;
-			debug(pamh, "Could not get password item from pam.");
-		}
+	if( PAM_SUCCESS != pam_get_item(pamh, PAM_AUTHTOK, &opts.passwd) )
+	{
+		ret++;
+		debug(pamh, "Could not get password item from pam.");
 	}
 
 	if( PAM_SUCCESS != parse_opts(&opts, argc, argv, PAM_SM_AUTH) )
@@ -35,9 +31,9 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		debug(pamh, "Could not parse module options.");
 	}
 
-	if( NULL == opts.passwd )
+	if( !opts.use_first_pass || NULL == opts.passwd )
 	{
-		debug(pamh, "No password. Will ask user for it.");
+		debug(pamh, "No password or use_first_pass is not set. Prompting user.");
 		if( PAM_SUCCESS != get_password(pamh, &opts) )
 		{
 			debug(pamh, "Could not get password from user. No TTY?");
