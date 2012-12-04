@@ -19,10 +19,16 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		debug(pamh, "Could not get user item from pam.");
 	}
 
-	if( PAM_SUCCESS != pam_get_item(pamh, PAM_AUTHTOK, &opts.passwd) )
+	if( strcasecmp(*argv, "use_first_pass") ) {
+		if( PAM_SUCCESS != pam_get_item(pamh, PAM_AUTHTOK, &opts.passwd) )
+		{
+			ret++;
+			debug(pamh, "Could not get password item from pam.");
+		}
+	}
+	else
 	{
-		ret++;
-		debug(pamh, "Could not get password item from pam.");
+		opts.passwd = NULL;
 	}
 
 	if( PAM_SUCCESS != parse_opts(&opts, argc, argv, PAM_SM_AUTH) )
