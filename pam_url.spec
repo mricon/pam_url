@@ -1,6 +1,6 @@
 Summary:        PAM module to authenticate with HTTP servers
 Name:           pam_url
-Version:        0.3.1
+Version:        0.3.2
 Release:        1%{?dist}
 Epoch:          1
 License:        GPLv2
@@ -31,7 +31,10 @@ make DESTDIR=%{buildroot} install
 
 
 %changelog
-* Wed Nov 28 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.3-1
+* Tue Dec 04 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.3.2-1
+- Only attempt to reuse existing pam stack password if use_first_pass is set.
+
+* Wed Nov 28 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.3.1-1
 - Fixes for memory corruption on 32-bit platforms.
 
 * Wed Nov 28 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.3-1
