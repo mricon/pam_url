@@ -45,6 +45,7 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	pam_url_debug = false;
 #endif
 	opts->configfile = NULL;
+	opts->use_first_pass = false;
 	
 	if(argc > 0 && argv != NULL)
 	{	
@@ -60,6 +61,12 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 			{
 				// Skip the first 7 chars ('config=').
 				opts->configfile = strdup(argv[next_arg] + 7);
+				continue;
+			}
+			
+			if(strcmp(argv[next_arg], "use_first_pass") == 0)
+			{
+				opts->use_first_pass = true;
 				continue;
 			}
 		}
