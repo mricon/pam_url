@@ -19,7 +19,9 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		debug(pamh, "Could not get user item from pam.");
 	}
 
-	if( opts.use_first_pass ) {
+	if( true == opts.use_first_pass ) {
+		debug(pamh, "use_first_pass set. Attempting to get password from pam.");
+
 		if( PAM_SUCCESS != pam_get_item(pamh, PAM_AUTHTOK, &opts.passwd) )
 		{
 			ret++;
