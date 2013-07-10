@@ -46,6 +46,7 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 #endif
 	opts->configfile = NULL;
 	opts->use_first_pass = false;
+	opts->prepend_first_pass = false;
 	
 	if(argc > 0 && argv != NULL)
 	{	
@@ -67,6 +68,12 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 			if(strcmp(argv[next_arg], "use_first_pass") == 0)
 			{
 				opts->use_first_pass = true;
+				continue;
+			}
+
+			if(strcmp(argv[next_arg], "prepend_first_pass") == 0)
+			{
+				opts->prepend_first_pass = true;
 				continue;
 			}
 		}
