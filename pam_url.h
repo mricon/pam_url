@@ -9,7 +9,7 @@
 #endif
 
 #ifndef VERS
-	#define VERS "0.3.2"
+	#define VERS "0.3.3"
 #endif
 
 #ifndef USER_AGENT

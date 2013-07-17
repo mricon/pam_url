@@ -18,5 +18,14 @@ This line forms the following url encoded POST data:
 user=<username>&passwd=<pass>&mode=<PAM_AUTH|PAM_ACCT|PAM_SESS|PAM_PASS>&PSK=secret&do=auth
 It should return either 200 OK with PSK in the body or 403 Forbidden if unsuccessful.
 
+You can additionally set the following options:
+
+    use_first_pass      Use the password previously used in the pam stack
+    prepend_first_pass  Prepend the password previously used in the pam stack
+                        (This is a handy option in totpcgi deployments when you want
+                        to be able to pass both the password and the token code to the
+                        verification server. It's probably not useful for any other
+                        purpose.)
+
 Please take a look inside the examples directory.
 Please read the COPYING, INSTALL and AUTHOR files as well.
