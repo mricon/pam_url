@@ -50,6 +50,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		else
 		{
 			if( opts.prepend_first_pass && NULL != prev_passwd ) {
+				debug(pamh, "Prepending previously used password.");
 				new_passwd = calloc(1, strlen(opts.passwd) + 1);
 				snprintf(new_passwd, strlen(opts.passwd) + 1, "%s", opts.passwd);
 				len = strlen(opts.passwd) + strlen(prev_passwd) + 1;
@@ -58,7 +59,6 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 				free(prev_passwd);
 				free(new_passwd);
 			}
-			debug(pamh, "No password or use_first_pass is not set. Prompting user.");
 			pam_set_item(pamh, PAM_AUTHTOK, opts.passwd);
 		}
 	}
