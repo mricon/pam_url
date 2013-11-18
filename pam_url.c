@@ -218,6 +218,7 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		}
 
 		safe_passwd = curl_easy_escape(eh, combined, 0);
+		free(combined);
 	}
 	else
 	{
