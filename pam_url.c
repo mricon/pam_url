@@ -47,6 +47,7 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	opts->configfile = NULL;
 	opts->use_first_pass = false;
 	opts->prepend_first_pass = false;
+	opts->first_pass = NULL;
 	
 	if(argc > 0 && argv != NULL)
 	{	
@@ -202,7 +203,27 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 	if( safe_user == NULL )
 		goto curl_error;
 	
-	char *safe_passwd = curl_easy_escape(eh, opts.passwd, 0);
+	char *safe_passwd = NULL;
+
+	if( opts.prepend_first_pass && NULL != opts.first_pass )
+	{
+		char *combined = NULL;
+		debug(pamh, "Prepending previously used password.");
+		if( asprintf(&combined, "%s%s", opts.first_pass, opts.passwd) < 0 ||
+			combined == NULL )
+		{
+			free(combined);
+			debug(pamh, "Out of memory");
+			goto curl_error;
+		}
+
+		safe_passwd = curl_easy_escape(eh, combined, 0);
+	}
+	else
+	{
+		safe_passwd = curl_easy_escape(eh, opts.passwd, 0);
+	}
+
 	if( safe_passwd == NULL )
 		goto curl_error;
 

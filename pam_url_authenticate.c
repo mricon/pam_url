@@ -13,8 +13,6 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	pam_url_opts opts;
 	int ret = 0;
 	int len = 0;
-	char* prev_passwd = NULL;
-	char* new_passwd = NULL;
 
 	if ( PAM_SUCCESS != pam_get_item(pamh, PAM_USER, &opts.user) )
 	{
@@ -37,29 +35,13 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	if( !opts.use_first_pass || NULL == opts.passwd )
 	{
 		if( NULL != opts.passwd ) {
-			prev_passwd = calloc(1, strlen(opts.passwd) + 1);
-			snprintf(prev_passwd, strlen(opts.passwd) + 1, "%s", opts.passwd);
+			opts.first_pass = strdup(opts.passwd);
 		}
 
-		debug(pamh, "No password or use_first_pass is not set. Prompting user.");
 		if( PAM_SUCCESS != get_password(pamh, &opts) )
 		{
 			debug(pamh, "Could not get password from user. No TTY?");
 			return PAM_AUTH_ERR;
-		}
-		else
-		{
-			if( opts.prepend_first_pass && NULL != prev_passwd ) {
-				debug(pamh, "Prepending previously used password.");
-				new_passwd = calloc(1, strlen(opts.passwd) + 1);
-				snprintf(new_passwd, strlen(opts.passwd) + 1, "%s", opts.passwd);
-				len = strlen(opts.passwd) + strlen(prev_passwd) + 1;
-				opts.passwd = realloc(opts.passwd, len);
-				snprintf(opts.passwd, len, "%s%s", prev_passwd, new_passwd);
-				free(prev_passwd);
-				free(new_passwd);
-			}
-			pam_set_item(pamh, PAM_AUTHTOK, opts.passwd);
 		}
 	}
 
