@@ -1,6 +1,6 @@
 Summary:        PAM module to authenticate with HTTP servers
 Name:           pam_url
-Version:        0.3.2
+Version:        0.3.3
 Release:        1%{?dist}
 Epoch:          1
 License:        GPLv2
@@ -31,6 +31,9 @@ make DESTDIR=%{buildroot} install
 
 
 %changelog
+* Mon Nov 13 2013 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.3.3-1
+- Update to 0.3.3, which implements prepend_first_pass feature.
+
 * Tue Dec 04 2012 Konstantin Ryabitsev <icon@fedoraproject.org> - 0.3.2-1
 - Only attempt to reuse existing pam stack password if use_first_pass is set.
 
