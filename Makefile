@@ -27,7 +27,7 @@ debug:
 	CFLAGS="-g3 -O0" ${MAKE} all
 
 ${obj}: ${objo}
-	${CC} ${LDFLAGS} -o ${obj} ${objo}
+	${CC} ${objo} ${LDFLAGS} -o ${obj}
 
 clean:
 	rm -f ${obj} ${objo}

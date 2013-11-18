@@ -50,7 +50,8 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	
 	if(argc > 0 && argv != NULL)
 	{	
-		for(int next_arg = 0; next_arg < argc; next_arg++)
+	int next_arg;
+		for(next_arg = 0; next_arg < argc; next_arg++)
 		{
 			if(strcmp(argv[next_arg], "debug") == 0)
 			{
