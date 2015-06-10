@@ -122,8 +122,8 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 
 
 	// SSL Options
-    if(config_lookup_string(&config, "pam_url.ssl.use_client_cert", &opts->use_client_cert) == CONFIG_FALSE)
-        opts->use_client_cert = false;
+	if(config_lookup_string(&config, "pam_url.ssl.use_client_cert", &opts->use_client_cert) == CONFIG_FALSE)
+		opts->use_client_cert = false;
 
 	if(config_lookup_string(&config, "pam_url.ssl.client_cert", &opts->ssl_cert) == CONFIG_FALSE)
 		opts->ssl_cert = DEF_SSLCERT;
@@ -271,23 +271,23 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_URL, opts.url) )
 		goto curl_error;
 
-    if( opts.use_client_cert == true )
-    {
-    	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERT, opts.ssl_cert) )
-    		goto curl_error;
+	if( opts.use_client_cert == true )
+	{
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERT, opts.ssl_cert) )
+			goto curl_error;
 
-    	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERTTYPE, "PEM") )
-    		goto curl_error;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERTTYPE, "PEM") )
+			goto curl_error;
 
-    	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEY, opts.ssl_key) )
-    		goto curl_error;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEY, opts.ssl_key) )
+			goto curl_error;
 
-    	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEYTYPE, "PEM") )
-    		goto curl_error;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEYTYPE, "PEM") )
+			goto curl_error;
 
-    	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_CAINFO, opts.ca_cert) )
-    		goto curl_error;
-    }
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_CAINFO, opts.ca_cert) )
+			goto curl_error;
+	}
 
 	if( opts.ssl_verify_host == true )
 	{
@@ -340,7 +340,7 @@ int check_rc(pam_url_opts opts)
 	}
 
 	if( strlen(opts.ret_code) == recvbuf_size &&
-            0 == strncmp(opts.ret_code, recvbuf, recvbuf_size) )
+			0 == strncmp(opts.ret_code, recvbuf, recvbuf_size) )
 	{
 		return PAM_SUCCESS;
 	}
