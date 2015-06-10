@@ -100,6 +100,7 @@ typedef struct pam_url_opts_ {
 	int prepend_first_pass;
 	char *first_pass;
 
+	int use_client_cert;
 	int ssl_verify_peer;
 	int ssl_verify_host;
 
