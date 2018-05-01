@@ -1,5 +1,12 @@
 pam_url - authenticate with webservers
 
+### Debian build
+    
+    apt-get install libconfig-dev libcurl4-nss-dev libpam0g-dev
+    make
+    make install
+    
+    
 This software is opensource software licensed under the GNU Public License version 2.
 The author of this software is Sascha Thomas Spreitzer <sspreitzer (at) fedoraproject.org>.
 http://spreitzer.name/
