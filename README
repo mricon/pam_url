@@ -2,7 +2,7 @@ pam_url - authenticate with webservers
 
 ### Debian build
     
-    apt-get install libconfig-dev libcurl4-nss-dev libpam0g-dev
+    apt-get install libconfig-dev libcurl4-openssl-dev libpam0g-dev
     make
     make install
     
