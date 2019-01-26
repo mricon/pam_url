@@ -194,14 +194,14 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		opts.passwd = "";
 	
 	if( 0 != curl_global_init(CURL_GLOBAL_ALL) )
-		goto curl_error;
+		goto curl_error_1;
 
 	if( NULL == (eh = curl_easy_init() ) )
-		goto curl_error;
+		goto curl_error_2;
 
 	char *safe_user = curl_easy_escape(eh, opts.user, 0);
 	if( safe_user == NULL )
-		goto curl_error;
+		goto curl_error_3;
 	
 	char *safe_passwd = NULL;
 
@@ -214,7 +214,8 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		{
 			free(combined);
 			debug(pamh, "Out of memory");
-			goto curl_error;
+			curl_free(safe_user);
+			goto curl_error_3;
 		}
 
 		safe_passwd = curl_easy_escape(eh, combined, 0);
@@ -225,8 +226,10 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		safe_passwd = curl_easy_escape(eh, opts.passwd, 0);
 	}
 
-	if( safe_passwd == NULL )
-		goto curl_error;
+	if( safe_passwd == NULL ) {
+		curl_free(safe_user);
+		goto curl_error_3;
+	}
 
 	ret = asprintf(&post, "%s=%s&%s=%s&mode=%s%s", opts.user_field,
 							safe_user,
@@ -312,15 +315,19 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		goto curl_error;
 
 	// No errors
-	curl_easy_cleanup(eh);
 	free(post);
+	curl_easy_cleanup(eh);
+	curl_global_cleanup();
 	return PAM_SUCCESS;
 
 curl_error:
-	if (eh != NULL)
-		curl_easy_cleanup(eh);
 	if (post != NULL)
 		free(post);
+curl_error_3:
+	curl_easy_cleanup(eh);
+curl_error_2:
+	curl_global_cleanup();
+curl_error_1:
 	return PAM_AUTH_ERR;
 }
 
