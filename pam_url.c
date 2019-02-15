@@ -117,7 +117,7 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	if(config_lookup_string(&config, "pam_url.settings.passwdfield", &opts->passwd_field) == CONFIG_FALSE)
 		opts->passwd_field = DEF_PASSWD;
 	
-	if(config_lookup_string(&config, "pam_url.settings.extradata", &opts->extra_field) == CONFIG_FALSE)
+	if(config_lookup_string(&config, "pam_url.settings.extradata", (const char **)&opts->extra_field) == CONFIG_FALSE)
 		opts->extra_field = DEF_EXTRA;
 	
 	
