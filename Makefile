@@ -4,7 +4,7 @@ libs		+= libcurl libconfig
 
 CFLAGS		+= -fPIC -pthread -D_GNU_SOURCE $(shell pkg-config --cflags ${libs})
 
-LDFLAGS		:= -shared -lpam -pthread $(shell pkg-config --libs ${libs})
+LDFLAGS		+= -shared -lpam -pthread $(shell pkg-config --libs ${libs})
 
 arch		:= $(shell uname -m)
 pamlib		:= lib/security
