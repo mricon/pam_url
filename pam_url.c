@@ -122,13 +122,20 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	
 	
 	// SSL Options
-	if(config_lookup_string(&config, "pam_url.ssl.client_cert", &opts->ssl_cert) == CONFIG_FALSE)
+	if(!config_lookup(&config, "pam_url.ssl.client_cert"))
 		opts->ssl_cert = DEF_SSLCERT;
+	else if(config_lookup_string(&config, "pam_url.ssl.client_cert", &opts->ssl_cert) == CONFIG_FALSE)
+		opts->ssl_cert = false;
 	
-	if(config_lookup_string(&config, "pam_url.ssl.client_key", &opts->ssl_key) == CONFIG_FALSE)
+	if(!config_lookup(&config, "pam_url.ssl.client_key"))
 		opts->ssl_key = DEF_SSLKEY;
-	if(config_lookup_string(&config, "pam_url.ssl.ca_cert", &opts->ca_cert) == CONFIG_FALSE)
+	else if(config_lookup_string(&config, "pam_url.ssl.client_key", &opts->ssl_key) == CONFIG_FALSE)
+		opts->ssl_key = false;
+
+	if(!config_lookup(&config, "pam_url.ssl.ca_cert"))
 		opts->ca_cert = DEF_CA_CERT;
+	else if(config_lookup_string(&config, "pam_url.ssl.ca_cert", &opts->ca_cert) == CONFIG_FALSE)
+		opts->ca_cert = false;
 	
 	if(config_lookup_bool(&config, "pam_url.ssl.verify_host", (int *)&opts->ssl_verify_host) == CONFIG_FALSE)
 		opts->ssl_verify_host = true;
@@ -271,20 +278,29 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_URL, opts.url) )
 		goto curl_error;
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERT, opts.ssl_cert) )
-		goto curl_error;
+	if( opts.ssl_cert )
+	{
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERT, opts.ssl_cert) )
+			goto curl_error;
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERTTYPE, "PEM") )
-		goto curl_error;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLCERTTYPE, "PEM") )
+			goto curl_error;
+	}
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEY, opts.ssl_key) )
-		goto curl_error;
+	if( opts.ssl_key )
+	{
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEY, opts.ssl_key) )
+			goto curl_error;
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEYTYPE, "PEM") )
-		goto curl_error;
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_SSLKEYTYPE, "PEM") )
+			goto curl_error;
+	}
 
-	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_CAINFO, opts.ca_cert) )
-		goto curl_error;
+	if( opts.ca_cert )
+	{
+		if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_CAINFO, opts.ca_cert) )
+			goto curl_error;
+	}
 
 	if( opts.ssl_verify_host == true )
 	{
