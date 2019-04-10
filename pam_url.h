@@ -71,14 +71,6 @@
 	#define DEF_CA_CERT "/etc/pki/tls/certs/ca-bundle.crt"
 #endif
 
-#ifndef DEF_SSLKEY
-	#define DEF_SSLKEY "/etc/pki/pam_url_key.pem"
-#endif
-
-#ifndef DEF_SSLCERT
-    #define DEF_SSLCERT "/etc/pki/pam_url_cert.pem"
-#endif
-
 #ifndef DEF_PROMPT
     #define DEF_PROMPT "Password: "
 #endif
