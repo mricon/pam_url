@@ -123,10 +123,11 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	
 	// SSL Options
 	if(config_lookup_string(&config, "pam_url.ssl.client_cert", &opts->ssl_cert) == CONFIG_FALSE)
-		opts->ssl_cert = DEF_SSLCERT;
+		opts->ssl_cert = NULL;
 	
 	if(config_lookup_string(&config, "pam_url.ssl.client_key", &opts->ssl_key) == CONFIG_FALSE)
-		opts->ssl_key = DEF_SSLKEY;
+		opts->ssl_key = NULL;
+	
 	if(config_lookup_string(&config, "pam_url.ssl.ca_cert", &opts->ca_cert) == CONFIG_FALSE)
 		opts->ca_cert = DEF_CA_CERT;
 	
