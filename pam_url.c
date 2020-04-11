@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
+bool pam_url_debug;
 char* recvbuf = NULL;
 size_t recvbuf_size = 0;
 static config_t config;
