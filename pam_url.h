@@ -83,7 +83,7 @@
     #define DEF_PROMPT "Password: "
 #endif
 
-bool pam_url_debug;
+extern bool pam_url_debug;
 
 typedef struct pam_url_opts_ {
 	const char *url;
