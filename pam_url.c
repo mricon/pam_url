@@ -120,6 +120,11 @@ int parse_opts(pam_url_opts *opts, int argc, const char *argv[], int mode)
 	if(config_lookup_string(&config, "pam_url.settings.extradata", (const char **)&opts->extra_field) == CONFIG_FALSE)
 		opts->extra_field = DEF_EXTRA;
 	
+	if(config_lookup_int(&config, "pam_url.settings.connect_timeout_ms", &opts->connect_timeout_ms) == CONFIG_FALSE)
+		opts->connect_timeout_ms = 0; // Select cURL lib default
+
+	if(config_lookup_int(&config, "pam_url.settings.timeout_ms", &opts->timeout_ms) == CONFIG_FALSE)
+		opts->connect_timeout_ms = 0; // Select cURL lib default
 	
 	// SSL Options
 	if(config_lookup_string(&config, "pam_url.ssl.client_cert", &opts->ssl_cert) == CONFIG_FALSE)
@@ -284,6 +289,12 @@ int fetch_url(pam_handle_t *pamh, pam_url_opts opts)
 		goto curl_error;
 
 	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_CAINFO, opts.ca_cert) )
+		goto curl_error;
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_CONNECTTIMEOUT_MS, opts.connect_timeout_ms) )
+		goto curl_error;
+
+	if( CURLE_OK != curl_easy_setopt(eh, CURLOPT_TIMEOUT_MS, opts.timeout_ms) )
 		goto curl_error;
 
 	if( opts.ssl_verify_host == true )
