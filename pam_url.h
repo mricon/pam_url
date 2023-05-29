@@ -99,6 +99,8 @@ typedef struct pam_url_opts_ {
 	int use_first_pass;
 	int prepend_first_pass;
 	char *first_pass;
+	int connect_timeout_ms;
+	int timeout_ms;
 
 	int ssl_verify_peer;
 	int ssl_verify_host;
